@@ -7,8 +7,14 @@ describe Api::V1::ProductsController do
       get :show, id: @product.id
     end
 
+    it "has the user as a embeded object" do
+      product_response = json_response[:product]
+      binding.pry
+      expect(product_response[:user][:email]).to eql @product.user.email
+    end
+
     it "returns the information about a reporter on a hash" do
-      product_response = json_response
+      product_response = json_response[:product]
       expect(product_response[:title]).to eql @product.title
     end
 
@@ -21,15 +27,41 @@ describe Api::V1::ProductsController do
       get :index
     end
 
-=begin
-    it "returns 4 records from the database" do
-      products_response = json_response
-      binding.pry
-      expect(products_response[:products]).to have(4).items
-    end
-=end
+    context "when is not receiving any product_ids parameter" do
+      before(:each) do
+        get :index
+      end
 
-    it { should respond_with 200 }
+      it "returns 4 records from the database" do
+        products_response = json_response
+        expect(products_response[:products]).to have(4).items
+      end
+
+      it "returns the user object into each product" do
+        products_response = json_response[:products]
+        products_response.each do |product_response|
+          #expect(product_response[:user]).to be_present
+        end
+      end
+
+      it { should respond_with 200 }
+    end
+
+    context "when product_ids parameter is sent" do
+      before(:each) do
+        @user = FactoryGirl.create :user
+        3.times { FactoryGirl.create :product, user: @user }
+        get :index, product_ids: @user.product_ids
+      end
+
+      it "returns just the products that belong to the user" do
+        products_response = json_response[:products]
+        products_response.each do |product_response|
+          expect(product_response[:user][:email]).to eql @user.email
+        end
+      end
+    end
+
   end
 
   describe "POST #create" do
@@ -42,7 +74,7 @@ describe Api::V1::ProductsController do
       end
 
       it "renders the json representation for the product record just created" do
-        product_response = json_response
+        product_response = json_response[:product]
         expect(product_response[:title]).to eql @product_attributes[:title]
       end
 
@@ -87,7 +119,7 @@ describe Api::V1::ProductsController do
       end
 
       it "renders the json representation for the updated user" do
-        product_response = json_response
+        product_response = json_response[:product]
         expect(product_response[:title]).to eql "An expensive TV"
       end
 
@@ -107,7 +139,7 @@ describe Api::V1::ProductsController do
       end
 =end
 
-      it "renders the json errors on whye the user could not be created" do
+      it "renders the json errors on when the user could not be created" do
         product_response = json_response
         expect(product_response[:errors][:price]).to include "is not a number"
       end
