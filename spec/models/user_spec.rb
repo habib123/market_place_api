@@ -15,6 +15,7 @@ describe User do
   it { should validate_uniqueness_of(:email).ignoring_case_sensitivity }
   it { should allow_value('example@admin.com').for(:email) }
   it { should have_many(:products) }
+  it { should have_many(:orders) }
 
   describe "when email is not present" do
    before { @user.email = " " }

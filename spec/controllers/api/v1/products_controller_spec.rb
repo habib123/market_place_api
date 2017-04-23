@@ -9,7 +9,6 @@ describe Api::V1::ProductsController do
 
     it "has the user as a embeded object" do
       product_response = json_response[:product]
-      binding.pry
       expect(product_response[:user][:email]).to eql @product.user.email
     end
 
